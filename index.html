@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Calendar 2001</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #112233; /* Dark background for "glowing in the dark" theme */
+    color: #fff; /* Light text for visibility on dark bg */
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.8), 0 0 40px rgba(0, 255, 255, 0.6); /* Cyan glow intensified for dark theme */
+    color: #fff;
+  }
+  .calendar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    
+  }
+  .month {
+    background: #000222; /* Dark navy/blue background for months to evoke "glowing in the dark" */
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 
+      0 2px 5px rgba(0, 0, 0, 0.747), /* Deeper shadow for dark theme */
+      0 0 30px rgba(0, 255, 255, 0), /* Bright cyan outer glow */
+      inset 0 0 20px rgba(0, 255, 255, 0.199); /* Inner glow for depth */
+    transition: box-shadow 0.3s ease, transform 0.3s ease; /* Added transform transition */
+    color: #fff; /* Ensure text is light */
+  }
+  .month:hover {
+    box-shadow: 
+      0 4px 10px rgba(0,0,0,.6),
+      0 0 50px rgba(0, 255, 255, 1), /* Intense cyan glow on hover */
+      inset 0 0 30px rgba(0, 255, 255, 0.2);
+    transform: translateY(-5px); /* Slight lift on hover for dynamic feel */
+  }
+  .month h2 {
+    text-align: center;
+    margin: 5px 0 10px 0;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); /* Cyan glow on month titles */
+    color: #fff;
+  }
+  .days {
+    display: grid;
+    grid-template-columns: 40px repeat(7, 1fr);
+    text-align: center;
+    font-size: 14px;
+  }
+  .days div {
+    padding: 10px;
+    transition: all 0.2s ease; /* Smooth transitions for day cells */
+    color: #ddd; /* Light gray text for days */
+    
+  }
+  .dayname {
+    font-weight: bold;
+    background: #112233; /* Dark background for day names */
+    border-radius: 30px;
+    box-shadow: 
+      inset 0 0 10px rgba(0, 255, 255, 0.3), /* Inner cyan glow */
+      0 0 8px rgba(0, 255, 255, 0.2); /* Outer glow */
+    color: #fff;
+  }
+  .holiday {
+    background: #8B0000; /* Dark red (darker than lightcoral) for holidays in dark theme */
+    cursor: pointer;
+    border-radius: 50px;
+    box-shadow: 
+      0 0 15px rgba(255, 0, 0, 0.8), /* Bright red glow for holidays */
+      inset 0 0 10px rgba(255, 255, 255, 0.2); /* Inner highlight */
+    transition: all 0.3s ease;
+    color: #fff;
+  }
+  
+  .holiday:hover {
+    box-shadow: 
+      0 0 30px rgba(255, 0, 0, 1), /* Stronger red glow on hover */
+      0 4px 8px rgba(0, 0, 0, 0.3),
+      inset 0 0 15px rgba(255, 255, 255, 0.4);
+    transform: scale(1.1); /* Slightly larger scale for emphasis */
+  }
+
+  /* New highlight class for special dates in January (green glow to fit dark theme) */
+  .highlight {
+    background: rgba(0, 83, 139, 0.349); /* Dark blue-green background */
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    color: #fff;
+    cursor: pointer;
+  }
+  
+  .highlight:hover {
+    box-shadow: 
+      0 0 30px rgba(0, 255, 213, 0.438), /* Stronger green glow on hover */
+      0 4px 8px rgba(0, 0, 0, 0.3),
+      inset 0 0 15px rgba(255, 255, 255, 0.4);
+    transform: scale(1.1); /* Slightly larger scale for emphasis */
+  }
+
+  .weeknum {
+    font-size: 14px;
+    color: #aaa; /* Lighter color for visibility */
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3); /* Cyan glow on week numbers */
+  }
+ 
+  /* Popup with dark theme and glow */
+  .popup {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    background: #001122; /* Dark background matching months */
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 
+      0 4px 15px rgba(0,0,0,.5),
+      0 0 40px rgba(0, 255, 255, 0.7); /* Bright cyan glow around popup */
+    max-width: 300px;
+    text-align: center;
+    z-index: 1000;
+    transition: box-shadow 0.3s ease;
+    color: #fff; /* Light text */
+  }
+  .popup img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 10px 0;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4); /* Cyan glow on popup image */
+  }
+  .popup button {
+    margin-top: 10px;
+    padding: 6px 15px;
+    border: none;
+    border-radius: 5px;
+    background: #333; /* Darker button */
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.5); /* Cyan glow on close button */
+    transition: box-shadow 0.2s ease;
+  }
+  .popup button:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+  }
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.8); /* Darker overlay for immersion */
+    z-index: 999;
+  }
+  @media (max-width: 1024px) {
+    .calendar {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .calendar {
+      grid-template-columns: 1fr;
+    }
+
+    .days {
+      font-size: 12px;
+      grid-template-columns: 30px repeat(7, 1fr);
+    }
+
+    .days div {
+      padding: 6px;
+    }
+
+    .month h2 {
+      font-size: 1.2em;
+    }
+  }
+
+  @media (max-width: 480px) {
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+    }
+
+    .popup {
+      width: 90%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>Philippines Calendar - Year 2001</h1>
+<div class="calendar" id="calendar"></div>
+
+<div class="overlay" id="overlay"></div>
+<div class="popup" id="popup">
+  <h3 id="popup-title"></h3>
+  <img id="popup-img" src="" alt="Holiday">
+  <p id="popup-desc"></p>
+  <button onclick="closePopup()">Close</button>
+</div>
+
+<script>
+const months = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December"
+];
+
+// Complete 2001 Holidays
+const holidays = {
+  "1-1": {title:"New Year's Day", desc:"Celebration of the first day of the year.", img:"Holiday/NY.jpg"},
+  "4-9": {title:"Araw ng Kagitingan", desc:"Day of Valor honoring Filipino soldiers.", img:"Holiday/ANKG.jpg"},
+  "4-13": {title:"Good Friday", desc:"Commemoration of the crucifixion of Jesus Christ.", img:"Holiday/GF.jpg"},
+  "4-14": {title:"Black Saturday", desc:"Part of Holy Week traditions.", img:"Holiday/BS.jpg"},
+  "5-1": {title:"Labor Day", desc:"Holiday honoring workers and labor movement.", img:"Holiday/LBD.jpg"},
+  "6-12": {title:"Independence Day", desc:"Philippine independence from Spain in 1898.", img:"Holiday/IPD.jpg"},
+  "11-1": {title:"All Saints’ Day", desc:"Day to honor all saints.", img:"Holiday/ASD.jpg"},
+  "11-30": {title:"Bonifacio Day", desc:"Birth anniversary of revolutionary leader Andres Bonifacio.", img:"Holiday/BFD.jpg"},
+  "12-25": {title:"Christmas Day", desc:"Celebration of the birth of Jesus Christ.", img:"Holiday/CHMD.jpg"},
+  "12-30": {title:"Rizal Day", desc:"Commemoration of the execution of José Rizal in 1896.", img:"Holiday/RD.JPG"},
+  "12-31": {title:"Last Day of the Year", desc:"Year-end celebration.", img:"Holiday/NYE.jpg"}
+};
+
+const daysInMonth = [31,28,31,30,31,30,31,31,30,31,30,31];
+const days = ["Wk","Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+function generateCalendar() {
+  const container = document.getElementById("calendar");
+  
+  for (let m=0;m<12;m++) {
+    let monthDiv = document.createElement("div");
+    monthDiv.className = "month";
+    
+    let h2 = document.createElement("h2");
+    h2.textContent = months[m];
+    monthDiv.appendChild(h2);
+    
+    let daysDiv = document.createElement("div");
+    daysDiv.className = "days";
+    
+    // Add day names
+    for (let d of days) {
+      let dn = document.createElement("div");
+      dn.textContent = d;
+      dn.className="dayname";
+      daysDiv.appendChild(dn);
+    }
+    
+    // Find first day
+    let firstDay = new Date(2001,m,1).getDay(); // 0=Sun
+    let weekNum = getWeekNumber(new Date(2001,m,1));
+    let currentWeek = weekNum;
+    let dayCounter=1;
+    
+    // Generate 6 weeks
+    for (let row=0;row<6;row++) {
+      for (let col=0;col<8;col++) {
+        let cell = document.createElement("div");
+        
+        if (col==0) { // Week number col
+          if (row==0 && col==0 && firstDay!=0) {
+            cell.textContent = weekNum;
+          } else if (row>0 || (row==0 && firstDay==0)) {
+            currentWeek++;
+            cell.textContent=currentWeek;
+          }
+          cell.className="weeknum";
+        } else {
+          if ((row==0 && col-1<firstDay) || dayCounter>daysInMonth[m]) {
+            cell.textContent="";
+          } else {
+            let mm = m+1;
+            let key = mm+"-"+dayCounter;
+            cell.textContent=dayCounter;
+            if (holidays[key]) {
+              cell.classList.add("holiday");
+              cell.onclick=()=>showPopup(holidays[key]);
+            }
+            
+            if (m === 0 && (dayCounter === 7 || dayCounter === 14 || dayCounter === 21 || dayCounter === 28)) {
+              cell.classList.add("highlight");
+            }
+             
+            if (m === 1 && (dayCounter === 4 || dayCounter === 11 || dayCounter === 18 || dayCounter === 25)) {
+              cell.classList.add("highlight");
+            }
+            
+            if (m === 2 && (dayCounter === 4 || dayCounter === 11 || dayCounter === 18 || dayCounter === 25)) {
+              cell.classList.add("highlight");
+            }
+            
+            if (m === 3 && (dayCounter === 1 || dayCounter === 8 || dayCounter === 15 || dayCounter === 22 || dayCounter === 29)) {
+              cell.classList.add("highlight");
+            }
+            
+            if (m === 4 && (dayCounter === 6 || dayCounter === 13 || dayCounter === 20 || dayCounter === 27)) {
+              cell.classList.add("highlight");
+            }
+            
+            if (m === 5 && (dayCounter === 3 || dayCounter === 10 || dayCounter === 17 || dayCounter === 24)) {
+              cell.classList.add("highlight");
+            }
+            
+            if (m === 6 && (dayCounter === 1 || dayCounter === 8 || dayCounter === 15 || dayCounter === 22 || dayCounter === 29)) {
+              cell.classList.add("highlight");
+            }
+        
+            if (m === 7 && (dayCounter === 5 || dayCounter === 12 || dayCounter === 19 || dayCounter === 26)) {
+              cell.classList.add("highlight");
+            }
+            
+            if (m === 8 && (dayCounter === 2 || dayCounter === 9 || dayCounter === 16 || dayCounter === 23 || dayCounter === 30)) {
+              cell.classList.add("highlight");
+            }
+            
+            if (m === 9 && (dayCounter === 7 || dayCounter === 14 || dayCounter === 21 || dayCounter === 28)) {
+              cell.classList.add("highlight");
+            }
+            
+            if (m === 10 && (dayCounter === 4 || dayCounter === 11 || dayCounter === 18 || dayCounter === 25)) {
+              cell.classList.add("highlight");
+            }
+            
+            if (m === 11 && (dayCounter === 2 || dayCounter === 9 || dayCounter === 16 || dayCounter === 23)) {
+              cell.classList.add("highlight");
+            }
+            dayCounter++;
+          }
+        }
+        daysDiv.appendChild(cell);
+      }
+    }
+    
+    monthDiv.appendChild(daysDiv);
+    container.appendChild(monthDiv);
+  }
+}
+
+function getWeekNumber(d) {
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+  var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+  return weekNo;
+}
+
+function showPopup(holiday) {
+  document.getElementById("popup-title").textContent = holiday.title;
+  document.getElementById("popup-desc").textContent = holiday.desc;
+  document.getElementById("popup-img").src = holiday.img;
+  document.getElementById("popup").style.display="block";
+  document.getElementById("overlay").style.display="block";
+}
+function closePopup() {
+  document.getElementById("popup").style.display="none";
+  document.getElementById("overlay").style.display="none";
+}
+
+generateCalendar();
+</script>
+</body>
+</html>
